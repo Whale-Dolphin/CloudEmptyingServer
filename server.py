@@ -2,11 +2,16 @@ import socket
 
 import threading
 
-import config
+import cfg
 
-host = config.HOST
-port = config.PORT
-log_level = config.LOG_LEVEL
+host = cfg.HOST
+port = cfg.PORT
+log_level = cfg.LOG_LEVEL
+
+import utils
+
+utils.setup_logging(log_level)
+timestamp = utils.get_timestamp()
 class ChatServer:
     def __init__(self, host, port):
         self.host = "localhost"
