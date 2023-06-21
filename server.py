@@ -4,8 +4,8 @@ import threading
 
 import cfg
 
-host = cfg.HOST
-port = cfg.PORT
+# host = cfg.HOST
+# port = cfg.PORT
 log_level = cfg.LOG_LEVEL
 
 import utils
@@ -15,7 +15,7 @@ timestamp = utils.get_timestamp()
 class ChatServer:
     def __init__(self, host, port):
         self.host = "localhost"
-        self.port = 5000
+        self.port = 11454
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.server_socket.bind((self.host, self.port))
