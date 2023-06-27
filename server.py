@@ -35,11 +35,11 @@ def get_users():
 
 @app.route('/users', methods=['POST'])
 def add_user():
-    name = request.json['name']
-    message = request.json['message']
+    account = request.json['account']
+    password = request.json['password']
     conn = sqlite3.connect('users.db')
     cursor = conn.cursor()
-    cursor.execute('INSERT INTO users (name, message) VALUES (?, ?)', (name, message))
+    cursor.execute('INSERT INTO users (account, password) VALUES (?, ?)', ((account, password)))
     conn.commit()
     conn.close()
     return jsonify({'message': 'User added successfully'})
@@ -67,4 +67,25 @@ def handle_message(data):
     emit('message', data, broadcast=True)
 
 if __name__ == '__main__':
-    socketio.run(app, host='localhost', port=11454)
+    socketio.run(app, host='192.168.31.229', port=11454)
+
+import smtplib
+import random
+
+@app.route('/send_verification_code', methods=['POST'])
+def send_verification_code():
+    email = request.json['email']
+    code = str(random.randint(100000, 999999))
+    sender_email = 'cloudemtying@163.com'
+    sender_password = 'DggO~$d$=.Q-5KJZ'
+    receiver_email = email
+    message = 'Subject: Verification Code\n\nYour verification code is: ' + code
+    server = smtplib.SMTP('smtp.163.com', 25)
+    server.starttls()
+    server.login(sender_email, sender_password)
+    server.sendmail(sender_email, receiver_email, message)
+    server.quit()
+    return jsonify({'code': code})
+
+if __name__ == '__main__':
+    app.run()
