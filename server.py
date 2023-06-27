@@ -20,6 +20,12 @@ db.commit()
 
 clients = []
 
+import smtplib
+import random
+
+# if __name__ == '__main__':
+#     app.run()
+
 @app.route('/users')
 def get_users():
     conn = sqlite3.connect('users.db')
@@ -44,6 +50,25 @@ def add_user():
     conn.close()
     return jsonify({'message': 'User added successfully'})
 
+@app.route('/send_verification_code', methods=['POST'])
+def send_verification_code():
+    email = request.json['email']
+    code = str(random.randint(100000, 999999))
+    sender_email = 'cloudemtying@163.com'
+    sender_password = 'DggO~$d$=.Q-5KJZ'
+    receiver_email = email
+    message = 'Subject: Verification Code\n\nYour verification code is: ' + code
+    server = smtplib.SMTP('smtp.163.com', 25)
+    server.starttls()
+    server.login(sender_email, sender_password)
+    server.sendmail(sender_email, receiver_email, message)
+    server.quit()
+    return jsonify({'code': code})
+
+@app.route('/test', methods=['POST'])
+def test():
+    return jsonify({'message': 'success'})
+
 @socketio.on('connect')
 def handle_connect():
     print(f"New client connected: {request.namespace.socket.sessid}")
@@ -67,25 +92,4 @@ def handle_message(data):
     emit('message', data, broadcast=True)
 
 if __name__ == '__main__':
-    socketio.run(app, host='192.168.31.229', port=11454)
-
-import smtplib
-import random
-
-@app.route('/send_verification_code', methods=['POST'])
-def send_verification_code():
-    email = request.json['email']
-    code = str(random.randint(100000, 999999))
-    sender_email = 'cloudemtying@163.com'
-    sender_password = 'DggO~$d$=.Q-5KJZ'
-    receiver_email = email
-    message = 'Subject: Verification Code\n\nYour verification code is: ' + code
-    server = smtplib.SMTP('smtp.163.com', 25)
-    server.starttls()
-    server.login(sender_email, sender_password)
-    server.sendmail(sender_email, receiver_email, message)
-    server.quit()
-    return jsonify({'code': code})
-
-if __name__ == '__main__':
-    app.run()
+    socketio.run(app, host='192.168.148.157', port=11454)
