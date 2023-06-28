@@ -4,19 +4,31 @@ import sqlite3
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from flask_socketio import SocketIO, emit
+import sqlalchemy
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import create_engine
+from sqlalchemy import Column, Integer, String
 
 app = Flask(__name__)
 CORS(app)
 socketio = SocketIO(app)
 
-# @app.route('/')
-# def index():
-#     return 'Hello, World!'
+engine = create_engine('sqlite:///users.db')
+Session = sessionmaker(bind=engine)
 
-db = sqlite3.connect('users.db')
-cursor = db.cursor()
-cursor.execute('CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, account TEXT, password TEXT)')
-db.commit()
+Base = declarative_base()
+
+class User(Base):
+    __tablename__ = 'users'
+
+    id = Column(Integer, primary_key=True)
+    account = Column(String)
+    password = Column(String)
+    nickname = Column(String)
+    merit = Column(Integer)
+
+Base.metadata.create_all(engine)
 
 clients = []
 
@@ -47,13 +59,29 @@ def get_users():
 def add_user():
     account = request.form.get('account')
     password = request.form.get('password')
-    conn = sqlite3.connect('users.db')
-    cursor = conn.cursor()
-    cursor.execute('INSERT INTO users (account, password) VALUES (?, ?)', ((account, password)))
-    conn.commit()
-    conn.close()
+
+    session = Session()
+    user = User(account=account, password=password)
+    session.add(user)
+    session.commit()
+    session.close()
+
     success = 1
     return jsonify({'success': success})
+
+@app.route('/login', methods=['POST'])
+def login():
+    account = request.form.get('account')
+    password = request.form.get('password')
+
+    session = Session()
+    user = session.query(User).filter_by(account=account, password=password).first()
+    session.close()
+
+    if user:
+        return jsonify({'success': True})
+    else:
+        return jsonify({'success': False, 'message': 'Invalid account or password'})
 
 @app.route('/send_verification_code', methods=['POST'])
 def send_verification_code():
@@ -74,27 +102,5 @@ def send_verification_code():
 def test():
     return jsonify({'message': 'success'})
 
-@socketio.on('connect')
-def handle_connect():
-    print(f"New client connected: {request.namespace.socket.sessid}")
-    clients.append(request.namespace.socket.sessid)
-
-@socketio.on('disconnect')
-def handle_disconnect():
-    print(f"Client disconnected: {request.namespace.socket.sessid}")
-    clients.remove(request.namespace.socket.sessid)
-
-@socketio.on('message')
-def handle_message(data):
-    message = data['message']
-    name = data['name']
-
-    # Write to database
-    cursor.execute('INSERT INTO users (name, message) VALUES (?, ?)', (name, message))
-    db.commit()
-
-    # Broadcast message to all clients
-    emit('message', data, broadcast=True)
-
 if __name__ == '__main__':
-    socketio.run(app, host='192.168.84.157', port=11455)
+    socketio.run(app, host='192.168.31.229', port=11455)
