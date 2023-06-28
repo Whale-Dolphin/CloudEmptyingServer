@@ -2,4 +2,5 @@
 title Chat Server
 cd /d/Applications/server/CloudEmptying
 call activate CloudEmptying
-python server.py
+python flaskapp.py
+python wsserver.py
