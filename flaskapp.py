@@ -34,12 +34,12 @@ clients = []
 import smtplib
 import random
 
-@app.before_request
-def log_request_info():
-    # app.logger.debug('Request Headers: %s', request.headers)
-    # app.logger.debug('Request Body: %s', request.get_data())
-    print('Request Headers: %s', request.headers)
-    print('Request Body: %s', request.get_data())
+# @app.before_request
+# def log_request_info():
+#     # app.logger.debug('Request Headers: %s', request.headers)
+#     # app.logger.debug('Request Body: %s', request.get_data())
+#     print('Request Headers: %s', request.headers)
+#     print('Request Body: %s', request.get_data())
 
 @app.route('/users')
 def get_users():
@@ -84,10 +84,11 @@ def login():
 
     session = Session()
     user = session.query(User).filter_by(account=account, password=password).first()
-    session.close()
+    nickname = user.nickname
 
     if user:
-        return '1'
+        success = 1
+        return jsonify({'nickname': nickname})
     else:
         return '0'
 
