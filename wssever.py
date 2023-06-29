@@ -12,14 +12,12 @@ from sqlalchemy.orm import declarative_base
 clients = []
 
 Base = declarative_base()
-# 定义映射到 users 表的 SQLAlchemy 模型
 class User(Base):
     __tablename__ = 'users'
 
     id = Column(Integer, primary_key=True)
     nickname = Column(String)
 
-# 创建数据库引擎和会话工厂
 engine = create_engine('sqlite:///user.db')
 Session = sessionmaker(bind=engine)
 
@@ -48,18 +46,27 @@ async def handle_json(websocket, message):
     
 async def handle_online(websocket,message):
     data = json.loads(message)
-    id = data.get('id')
-    nickname = data.get('nickname')
+    account = data.get('account')
+    nickname = get_nickname_from_account(account)
     data = {'id': id, 'nickname': nickname}
     for client in clients:
         if client != websocket and client.open:
             await client.send(json.dumps(data))
 
+def get_nickname_from_account(account):
+    session = Session()
+    user = session.query(User).filter_by(account=account).first()
+    session.close()
+    if user:
+        return user.nickname
+    else:
+        return '0'
+
 async def handle_message(websocket,message):
     data = json.loads(message)
-    id = data.get('id')
+    account = data.get('account')
     message = data.get('message')
-    data = {'id': id, 'message': message}
+    data = {'account': account, 'message': message}
     for client in clients:
         if client != websocket and client.open:
             await client.send(json.dumps(data))

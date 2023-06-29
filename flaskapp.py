@@ -59,15 +59,26 @@ def get_users():
 def add_user():
     account = request.form.get('account')
     password = request.form.get('password')
-
+    nickname = request.form.get('nickname')
     session = Session()
-    user = User(account=account, password=password)
+    user = User(account=account, password=password,nickname=nickname, merit=0)
     session.add(user)
     session.commit()
     session.close()
 
     success = 1
     return jsonify({'success': success})
+
+@app.route('/rename', methods=['POST'])
+def rename():
+    account = request.form.get('account')
+    nickname = request.form.get('nickname')
+    session = Session()
+    user = session.query(User).filter_by(account=account).first()
+    user.nickname = nickname
+    session.commit()
+    session.close()
+    return jsonify({'success': True})
 
 @app.route('/login', methods=['POST'])
 def login():
