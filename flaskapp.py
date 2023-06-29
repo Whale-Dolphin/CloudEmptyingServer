@@ -22,8 +22,7 @@ Base = declarative_base()
 class User(Base):
     __tablename__ = 'users'
 
-    id = Column(Integer, primary_key=True)
-    account = Column(String)
+    account = Column(String,primary_key=True)
     password = Column(String)
     nickname = Column(String)
     merit = Column(Integer)
@@ -55,7 +54,7 @@ def get_users():
     conn.close()
     return jsonify(users)
 
-@app.route('/users', methods=['POST'])
+@app.route('/addusers', methods=['POST'])
 def add_user():
     account = request.form.get('account')
     password = request.form.get('password')
@@ -65,9 +64,7 @@ def add_user():
     session.add(user)
     session.commit()
     session.close()
-
-    success = 1
-    return jsonify({'success': success})
+    return '1'
 
 @app.route('/rename', methods=['POST'])
 def rename():
@@ -90,9 +87,9 @@ def login():
     session.close()
 
     if user:
-        return jsonify({'success': True})
+        return '1'
     else:
-        return jsonify({'success': False, 'message': 'Invalid account or password'})
+        return '0'
 
 @app.route('/send_verification_code', methods=['POST'])
 def send_verification_code():
